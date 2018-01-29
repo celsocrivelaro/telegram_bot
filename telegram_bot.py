@@ -4,8 +4,14 @@ from telegram.ext import MessageHandler, Filters
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 import telegram
 import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 
-token = os.environ['TOKEN']
+# dotenv file
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path, verbose=True)
+
+token = os.environ.get('TOKEN')
 updater = Updater(token=token)
 
 dispatcher = updater.dispatcher
