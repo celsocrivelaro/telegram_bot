@@ -21,7 +21,7 @@ try:
         contact_keyboard = KeyboardButton(text="Enviar meu número de telefone", request_contact=True)
         custom_keyboard = [[ contact_keyboard ]]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard)
-        bot.send_message(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!", reply_markup=reply_markup)
+        bot.send_message(chat_id=update.message.chat_id, text="Preciso do seu número de telefone", reply_markup=reply_markup)
 
     def echo(bot, update):
         texto = update.message.text
