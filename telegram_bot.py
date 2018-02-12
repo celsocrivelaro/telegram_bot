@@ -7,9 +7,11 @@ import os
 from os.path import join, dirname
 from dotenv import load_dotenv
 
-# dotenv file
-dotenv_path = join(dirname(__file__), '.env')
-load_dotenv(dotenv_path, verbose=True)
+env = os.environ.get('ENV')
+if(env != 'production'):
+    # dotenv file
+    dotenv_path = join(dirname(__file__), '.env')
+    load_dotenv(dotenv_path, verbose=True)
 
 token = os.environ.get('TOKEN')
 updater = Updater(token=token)
