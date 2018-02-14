@@ -13,8 +13,17 @@ if(env != 'production'):
     dotenv_path = join(dirname(__file__), '.env')
     load_dotenv(dotenv_path, verbose=True)
 
-token = os.environ.get('TOKEN')
-updater = Updater(token=token)
+TOKEN = os.environ.get('TOKEN')
+PORT = os.environ.get('PORT')
+HEROKU_APP = os.environ.get('HEROKU_APP')
+
+updater = Updater(token=TOKEN)
+
+if(env == 'production'):
+    update.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
+    updater.bot.set_webhook("https://"+ HEROKU_APP  +".herokuapp.com/" + token).start_webhook(listen="0.0.0.0",
+                          port=PORT,
+                          url_path=TOKEN)
 
 dispatcher = updater.dispatcher
 
@@ -26,11 +35,11 @@ try:
         bot.send_message(chat_id=update.message.chat_id, text="Preciso do seu número de telefone", reply_markup=reply_markup)
 
     def echo(bot, update):
-        texto = update.message.text
+        texto = update.message.text[::-1] + '<b> xaxa oioi</b>'
         print(texto)
         print(update.message.from_user.username)
 
-        bot.send_message(chat_id=update.message.chat_id, text=texto[::-1])
+        bot.send_message(chat_id=update.message.chat_id, text=texto, parse_mode=telegram.ParseMode.HTML)
 
     def voice(bot, update):
         print("Audio recebido: " + update.message.voice.file_id)
@@ -41,9 +50,10 @@ try:
 
     def contact(bot, update):
         telefone = update.message.contact.phone_number
+        reply_markup = telegram.ReplyKeyboardRemove()
         print("Contato recebido: " + telefone)
 
-        bot.send_message(chat_id=update.message.chat_id, text='contato recebido')
+        bot.send_message(chat_id=update.message.chat_id, text='contato recebido', reply_markup=reply_markup)
 
     start_handler = CommandHandler('start', start)
     echo_handler = MessageHandler(Filters.text, echo)
@@ -54,6 +64,9 @@ try:
     dispatcher.add_handler(voice_handler)
     dispatcher.add_handler(contact_handler)
 
-    updater.start_polling()
+    if(env == 'production'):
+        updater.start_polling()
+    else:
+        updater.idle()
 except Exception as e:
     print(e)
