@@ -6,25 +6,22 @@ import telegram
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 env = os.environ.get('ENV')
+logger.info("Enviroment: " + env)
+
 if(env != 'production'):
     # dotenv file
     dotenv_path = join(dirname(__file__), '.env')
     load_dotenv(dotenv_path, verbose=True)
 
 TOKEN = os.environ.get('TOKEN')
-PORT = os.environ.get('PORT')
-HEROKU_APP = os.environ.get('HEROKU_APP')
-
 updater = Updater(token=TOKEN)
-
-if(env == 'production'):
-    update.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
-    updater.bot.set_webhook("https://"+ HEROKU_APP  +".herokuapp.com/" + token).start_webhook(listen="0.0.0.0",
-                          port=PORT,
-                          url_path=TOKEN)
-
 dispatcher = updater.dispatcher
 
 try:
@@ -65,8 +62,14 @@ try:
     dispatcher.add_handler(contact_handler)
 
     if(env == 'production'):
-        updater.start_polling()
-    else:
+        PORT = int(os.environ.get('PORT', '5000'))
+        HEROKU_APP = os.environ.get('HEROKU_APP')
+        logger.info("PORT: " + str(PORT))
+        logger.info("HEROKU_APP: " + HEROKU_APP)
+        updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
+        updater.bot.set_webhook("https://"+ HEROKU_APP +".herokuapp.com/" + TOKEN)
         updater.idle()
+    else:
+        updater.start_polling()
 except Exception as e:
     print(e)
