@@ -7,12 +7,14 @@ import os
 from os.path import join, dirname
 from dotenv import load_dotenv
 import logging
+import zapier
+import bucket
 
 logging.basicConfig(level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-env = os.environ.get('ENV')
+env = os.environ.get('ENV', 'development')
 logger.info("Enviroment: " + env)
 
 if(env != 'production'):
@@ -21,6 +23,8 @@ if(env != 'production'):
     load_dotenv(dotenv_path, verbose=True)
 
 TOKEN = os.environ.get('TOKEN')
+ZAPIER_URL = os.environ.get('ZAPIER_WEBHOOK')
+
 updater = Updater(token=TOKEN)
 dispatcher = updater.dispatcher
 
@@ -38,10 +42,22 @@ try:
 
         bot.send_message(chat_id=update.message.chat_id, text=texto, parse_mode=telegram.ParseMode.HTML)
 
+    def respond(bot, update):
+        telegram_url = zapier.send_audio(ZAPIER_URL, bot, update)
+
+
+        bot.send_message(chat_id=update.message.chat_id, text='resposta recebida')
+
     def voice(bot, update):
         print("Audio recebido: " + update.message.voice.file_id)
-        newFile = bot.get_file(update.message.voice.file_id)
-        newFile.download('voz.ogg')
+        voice_id = update.message.voice.file_id
+        voice_path = '/tmp/voice-' + voice_id + '.ogg'
+        voice_file = bot.getFile(voice_id)
+        voice_file.download(voice_path)
+
+        username = update.message.from_user.username
+        s3_url = bucket.upload_s3(voice_path, username + '_' + voice_id)
+        zapier.send_audio(ZAPIER_URL, username, s3_url)
 
         bot.send_message(chat_id=update.message.chat_id, text='audio recebido')
 
@@ -53,6 +69,7 @@ try:
         bot.send_message(chat_id=update.message.chat_id, text='contato recebido', reply_markup=reply_markup)
 
     start_handler = CommandHandler('start', start)
+    respond_handler = CommandHandler('respond', respond)
     echo_handler = MessageHandler(Filters.text, echo)
     voice_handler = MessageHandler(Filters.voice, voice)
     contact_handler = MessageHandler(Filters.contact, contact)
@@ -60,6 +77,7 @@ try:
     dispatcher.add_handler(echo_handler)
     dispatcher.add_handler(voice_handler)
     dispatcher.add_handler(contact_handler)
+    dispatcher.add_handler(respond_handler)
 
     if(env == 'production'):
         PORT = int(os.environ.get('PORT', '5000'))
