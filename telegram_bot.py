@@ -2,6 +2,7 @@ from telegram.ext import Updater
 from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 from telegram import ReplyKeyboardMarkup, KeyboardButton
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import telegram
 import os
 from os.path import join, dirname
@@ -30,9 +31,10 @@ dispatcher = updater.dispatcher
 
 try:
     def start(bot, update):
-        contact_keyboard = KeyboardButton(text="Enviar meu número de telefone", request_contact=True)
+        print("Start")
+        contact_keyboard = InlineKeyboardButton(text="Enviar meu número de telefone", request_contact=True)
         custom_keyboard = [[ contact_keyboard ]]
-        reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+        reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
         bot.send_message(chat_id=update.message.chat_id, text="Preciso do seu número de telefone", reply_markup=reply_markup)
 
     def echo(bot, update):
