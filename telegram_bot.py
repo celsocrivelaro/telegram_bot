@@ -37,6 +37,10 @@ try:
         reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
         bot.send_message(chat_id=update.message.chat_id, text="Preciso do seu número de telefone", reply_markup=reply_markup)
 
+    def som(bot, update):
+        print("Audio recebido: " + str(update.message.chat_id))
+        bot.send_voice(chat_id=update.message.chat_id, voice=open('teste_ogg.ogg', 'rb'))
+
     def echo(bot, update):
         texto = update.message.text[::-1] + '<b> xaxa oioi</b>'
         print(texto)
@@ -46,8 +50,6 @@ try:
 
     def respond(bot, update):
         telegram_url = zapier.send_audio(ZAPIER_URL, bot, update)
-
-
         bot.send_message(chat_id=update.message.chat_id, text='resposta recebida')
 
     def voice(bot, update):
@@ -71,11 +73,13 @@ try:
         bot.send_message(chat_id=update.message.chat_id, text='contato recebido', reply_markup=reply_markup)
 
     start_handler = CommandHandler('start', start)
+    som_handler = CommandHandler('som', som)
     respond_handler = CommandHandler('respond', respond)
     echo_handler = MessageHandler(Filters.text, echo)
     voice_handler = MessageHandler(Filters.voice, voice)
     contact_handler = MessageHandler(Filters.contact, contact)
     dispatcher.add_handler(start_handler)
+    dispatcher.add_handler(som_handler)
     dispatcher.add_handler(echo_handler)
     dispatcher.add_handler(voice_handler)
     dispatcher.add_handler(contact_handler)
